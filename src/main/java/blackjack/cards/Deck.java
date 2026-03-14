@@ -16,7 +16,7 @@ public class Deck {
     }
 
     public List<Card> getCards() {
-        return new ArrayList<>(cards);
+        return Collections.unmodifiableList(cards);
     }
 
     public void shuffle() {
@@ -39,5 +39,13 @@ public class Deck {
             throw new IllegalStateException("Cannot peek at an empty deck");
         }
         return cards.get(cards.size() - 1);
+    }
+
+    public int size() {
+        return cards.size();
+    }
+
+    public boolean isEmpty() {
+        return cards.isEmpty();
     }
 }

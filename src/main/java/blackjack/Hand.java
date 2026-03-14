@@ -2,12 +2,13 @@ package blackjack;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import blackjack.cards.*;
 
 public class Hand {
-    private List<Card> cards;
+    private final List<Card> cards;
 
     public Hand() {
         this.cards = new ArrayList<>();
@@ -29,7 +30,15 @@ public class Hand {
         cards.clear();
     }
 
+    public int size() {
+        return cards.size();
+    }
+
+    public boolean isEmpty() {
+        return cards.isEmpty();
+    }
+
     public List<Card> getCards() {
-        return new ArrayList<>(cards);
+        return Collections.unmodifiableList(cards);
     }
 }
