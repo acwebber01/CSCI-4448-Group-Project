@@ -35,3 +35,9 @@ build
 
 # Ignore metals extension for Scala
 .metals
+
+# Generated test and logging output
+bdd/
+blackjack.log
+
+.vscode

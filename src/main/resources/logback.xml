@@ -1,0 +1,24 @@
+<configuration>
+    <appender name="ConsoleOutput" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FileOutput" class="ch.qos.logback.core.FileAppender">
+        <file>blackjack.log</file>
+        <append>false</append>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="blackjack" level="INFO" additivity="false">
+        <appender-ref ref="ConsoleOutput" />
+        <appender-ref ref="FileOutput" />
+    </logger>
+
+    <root level="WARN">
+        <appender-ref ref="ConsoleOutput" />
+    </root>
+</configuration>
