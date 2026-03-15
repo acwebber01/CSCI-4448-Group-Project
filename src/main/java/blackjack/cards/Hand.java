@@ -1,11 +1,9 @@
-package blackjack;
+package blackjack.cards;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import blackjack.cards.*;
 
 public class Hand {
     private final List<Card> cards;
