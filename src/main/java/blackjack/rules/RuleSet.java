@@ -1,6 +1,6 @@
 package blackjack.rules;
 
-import blackjack.Hand;
+import blackjack.cards.Hand;
 
 public interface RuleSet {
     RuleConfig config();

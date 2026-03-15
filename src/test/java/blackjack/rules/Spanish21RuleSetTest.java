@@ -1,7 +1,7 @@
 package blackjack.rules;
 
-import blackjack.Hand;
 import blackjack.cards.Card;
+import blackjack.cards.Hand;
 import blackjack.cards.Rank;
 import blackjack.cards.Suit;
 import org.junit.jupiter.api.Test;

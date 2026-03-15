@@ -1,6 +1,6 @@
 package blackjack.rules;
 
-import blackjack.Hand;
+import blackjack.cards.Hand;
 import blackjack.cards.Rank;
 
 public class Spanish21RuleSet implements RuleSet {
