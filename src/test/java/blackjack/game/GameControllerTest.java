@@ -23,7 +23,7 @@ public class GameControllerTest {
         private List<GameEvent> events = new ArrayList<>();
 
         @Override
-        public void onGameEvent(GameEvent event) {
+        public void onGameEvent(GameEvent event, GameState state) {
             this.events.add(event);
         }
 
@@ -48,6 +48,11 @@ public class GameControllerTest {
             this.actions.clear();
             this.actions.addAll(List.of(actions));
             this.index = 0;
+        }
+
+        @Override
+        public boolean getPlayAgainChoice() {
+            return false;
         }
 
         @Override

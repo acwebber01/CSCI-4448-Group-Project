@@ -2,7 +2,6 @@ package blackjack.game;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import blackjack.cards.Card;
 import blackjack.cards.Deck;
@@ -17,6 +16,7 @@ public class GameController implements GameEventSubject {
     private final Player player;
     private final Dealer dealer;
     private final InputSource inputSource;
+    private final GameState state;
     private final List<GameEventObserver> observers = new ArrayList<>();
 
     public GameController(Deck deck, RuleSet ruleSet, Player player, Dealer dealer, InputSource inputSource) {
@@ -25,6 +25,7 @@ public class GameController implements GameEventSubject {
         this.player = player;
         this.dealer = dealer;
         this.inputSource = inputSource;
+        this.state = new GameState(player.getHand(), dealer.getHand());
     }
 
     public void playRound() {
@@ -49,10 +50,7 @@ public class GameController implements GameEventSubject {
         dealer.receiveCard(deck.draw());
         player.receiveCard(deck.draw());
         dealer.receiveCard(deck.draw());
-        Map<String, Object> initialData = Map.of(
-                "playerCards", player.getHand().getCards(),
-                "dealerFaceUp", dealer.getHand().getCards().get(0));
-        notifyObservers(new GameEvent(GameEventType.INITIAL_DEAL, "Initial cards have been dealt", initialData));
+        notifyObservers(new GameEvent(GameEventType.INITIAL_DEAL, "Initial cards have been dealt"));
     }
 
     private void playerTurn() {
@@ -60,36 +58,27 @@ public class GameController implements GameEventSubject {
         while (action == PlayerAction.HIT) {
             Card drawnCard = deck.draw();
             player.receiveCard(drawnCard);
-            notifyObservers(new GameEvent(GameEventType.CARD_DEALT, player.getName() + " drew a card",
-                    Map.of("card", drawnCard,
-                            "fullHand", player.getHand().getCards(),
-                            "participant", player.getName())));
+            notifyObservers(new GameEvent(GameEventType.CARD_DEALT, player.getName() + " drew " + drawnCard));
 
             if (ruleSet.isBust(player.getHand())) {
-                notifyObservers(new GameEvent(GameEventType.PLAYER_BUSTED, player.getName() + " has busted!",
-                        Map.of("finalHand", player.getHand().getCards())));
+                notifyObservers(new GameEvent(GameEventType.PLAYER_BUSTED, player.getName() + " has busted!"));
                 return;
             }
 
             action = inputSource.getPlayerAction();
         }
-        notifyObservers(new GameEvent(GameEventType.PLAYER_STOOD, player.getName() + " has stood.", 
-                Map.of("finalHand", player.getHand().getCards())));
+        notifyObservers(new GameEvent(GameEventType.PLAYER_STOOD, player.getName() + " has stood."));
     }
 
     private void dealerTurn() {
-        notifyObservers(new GameEvent(GameEventType.DEALER_TURN_STARTED, "Dealer's turn has started.", 
-                Map.of("dealerHand", dealer.getHand().getCards())));
+        notifyObservers(new GameEvent(GameEventType.DEALER_TURN_STARTED, "Dealer's turn has started."));
         while (ruleSet.dealerShouldHit(dealer.getHand())) {
             Card drawnCard = deck.draw();
             dealer.receiveCard(drawnCard);
-            notifyObservers(new GameEvent(GameEventType.CARD_DEALT, "Dealer drew a card",
-                    Map.of("card", drawnCard,
-                            "participant", dealer.getName())));
+            notifyObservers(new GameEvent(GameEventType.CARD_DEALT, "Dealer drew " + drawnCard));
         }
         if (ruleSet.isBust(dealer.getHand())) {
-            notifyObservers(new GameEvent(GameEventType.DEALER_BUSTED, "Dealer has busted!", 
-                    Map.of("finalHand", dealer.getHand().getCards())));
+            notifyObservers(new GameEvent(GameEventType.DEALER_BUSTED, "Dealer has busted!"));
         }
     }
 
@@ -115,7 +104,7 @@ public class GameController implements GameEventSubject {
 
     private void notifyObservers(GameEvent event) {
         for (GameEventObserver observer : observers) {
-            observer.onGameEvent(event);
+            observer.onGameEvent(event, state);
         }
     }
 }

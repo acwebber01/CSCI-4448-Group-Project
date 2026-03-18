@@ -7,7 +7,7 @@ public class GameLogger implements GameEventObserver {
     private static final Logger logger = LoggerFactory.getLogger(GameLogger.class);
 
     @Override
-    public void onGameEvent(GameEvent event) {
+    public void onGameEvent(GameEvent event, GameState state) {
         logger.info("Event: " + event.type() + " - " + event.message());
     } 
 }
