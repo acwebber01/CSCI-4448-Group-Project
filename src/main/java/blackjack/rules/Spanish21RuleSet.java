@@ -1,57 +1,16 @@
 package blackjack.rules;
 
 import blackjack.cards.Hand;
-import blackjack.cards.Rank;
 
-public class Spanish21RuleSet implements RuleSet {
-    private final RuleConfig config;
-
+public class Spanish21RuleSet extends BlackjackRuleSet {
     public Spanish21RuleSet() {
-        this(RuleConfig.builder()
+        super(RuleConfig.builder()
                 .dealerHitsSoft(true)
                 .build());
     }
 
     public Spanish21RuleSet(RuleConfig config) {
-        this.config = config;
-    }
-
-    @Override
-    public RuleConfig config() {
-        return config;
-    }
-
-    @Override
-    public HandEvaluation evaluate(Hand hand) {
-        int total = 0;
-        int softAces = 0;
-        int aceReduction = config.cardValue(Rank.ACE) - 1;
-
-        for (var card : hand.getCards()) {
-            total += config.cardValue(card.rank());
-            if (card.rank() == Rank.ACE) {
-                softAces++;
-            }
-        }
-
-        while (total > config.bustValue() && softAces > 0 && aceReduction > 0) {
-            total -= aceReduction;
-            softAces--;
-        }
-
-        return new HandEvaluation(total, softAces > 0);
-    }
-
-    @Override
-    public boolean dealerShouldHit(Hand dealerHand) {
-        HandEvaluation evaluation = evaluate(dealerHand);
-        if (evaluation.bestValue() < config.dealerStandValue()) {
-            return true;
-        }
-
-        return config.dealerHitsSoft()
-                && evaluation.bestValue() == config.dealerStandValue()
-                && evaluation.soft();
+        super(config);
     }
 
     @Override
@@ -59,10 +18,10 @@ public class Spanish21RuleSet implements RuleSet {
         HandEvaluation playerEvaluation = evaluate(playerHand);
         HandEvaluation dealerEvaluation = evaluate(dealerHand);
 
-        if (playerEvaluation.bestValue() <= config.bustValue()
-                && dealerEvaluation.bestValue() <= config.bustValue()
-                && playerEvaluation.bestValue() == config.blackjackValue()
-                && dealerEvaluation.bestValue() == config.blackjackValue()) {
+        if (playerEvaluation.bestValue() <= config().bustValue()
+                && dealerEvaluation.bestValue() <= config().bustValue()
+                && playerEvaluation.bestValue() == config().blackjackValue()
+                && dealerEvaluation.bestValue() == config().blackjackValue()) {
             return RoundOutcome.PLAYER_WIN;
         }
 

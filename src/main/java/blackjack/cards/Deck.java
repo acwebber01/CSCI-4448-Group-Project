@@ -40,6 +40,13 @@ public class Deck {
         }
         return cards.get(cards.size() - 1);
     }
+    
+    public Card peek(int i) {
+        if (i < 1 || i > cards.size()) {
+            throw new IllegalArgumentException("Peek index must be between 1 and the number of cards in the deck");
+        }
+        return cards.get(cards.size() - i);
+    }
 
     public int size() {
         return cards.size();

@@ -2,6 +2,7 @@ package blackjack.game;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import blackjack.cards.Card;
 import blackjack.cards.Deck;
@@ -15,49 +16,81 @@ public class GameController implements GameEventSubject {
     private final RuleSet ruleSet;
     private final Player player;
     private final Dealer dealer;
+    private final InputSource inputSource;
     private final List<GameEventObserver> observers = new ArrayList<>();
 
-    public GameController(Deck deck, RuleSet ruleSet, Player player, Dealer dealer) {
+    public GameController(Deck deck, RuleSet ruleSet, Player player, Dealer dealer, InputSource inputSource) {
         this.deck = deck;
         this.ruleSet = ruleSet;
         this.player = player;
         this.dealer = dealer;
+        this.inputSource = inputSource;
     }
 
-    public void dealInitialCards() {
-        player.receiveCard(deck.draw());
-        dealer.receiveCard(deck.draw());
-        player.receiveCard(deck.draw());
-        dealer.receiveCard(deck.draw());
-        notifyObservers(new GameEvent(GameEventType.INITIAL_DEAL, "Initial cards have been dealt"));
-    }
+    public void playRound() {
+        dealInitialCards();
 
-    public void playerHit() {
-        Card drawnCard = deck.draw();
-        player.receiveCard(drawnCard);
-        notifyObservers(new GameEvent(GameEventType.CARD_DEALT, player.getName() + " drew a card: " + drawnCard));
-        if (ruleSet.isBust(player.getHand())) {
-            notifyObservers(new GameEvent(GameEventType.PLAYER_BUSTED, player.getName() + " has busted!"));
+        if (ruleSet.isBlackjack(player.getHand()) || ruleSet.isBlackjack(dealer.getHand())) {
             endRound();
+            return;
         }
+
+        playerTurn();
+
+        if (!ruleSet.isBust(player.getHand())) {
+            dealerTurn();
+        }
+
+        endRound();
     }
 
-    public void playerStand() {
-        notifyObservers(new GameEvent(GameEventType.PLAYER_STOOD, player.getName() + " has stood."));
-        dealerTurn();
+    private void dealInitialCards() {
+        player.receiveCard(deck.draw());
+        dealer.receiveCard(deck.draw());
+        player.receiveCard(deck.draw());
+        dealer.receiveCard(deck.draw());
+        Map<String, Object> initialData = Map.of(
+                "playerCards", player.getHand().getCards(),
+                "dealerFaceUp", dealer.getHand().getCards().get(0));
+        notifyObservers(new GameEvent(GameEventType.INITIAL_DEAL, "Initial cards have been dealt", initialData));
+    }
+
+    private void playerTurn() {
+        PlayerAction action = inputSource.getPlayerAction();
+        while (action == PlayerAction.HIT) {
+            Card drawnCard = deck.draw();
+            player.receiveCard(drawnCard);
+            notifyObservers(new GameEvent(GameEventType.CARD_DEALT, player.getName() + " drew a card",
+                    Map.of("card", drawnCard,
+                            "fullHand", player.getHand().getCards(),
+                            "participant", player.getName())));
+
+            if (ruleSet.isBust(player.getHand())) {
+                notifyObservers(new GameEvent(GameEventType.PLAYER_BUSTED, player.getName() + " has busted!",
+                        Map.of("finalHand", player.getHand().getCards())));
+                return;
+            }
+
+            action = inputSource.getPlayerAction();
+        }
+        notifyObservers(new GameEvent(GameEventType.PLAYER_STOOD, player.getName() + " has stood.", 
+                Map.of("finalHand", player.getHand().getCards())));
     }
 
     private void dealerTurn() {
-        notifyObservers(new GameEvent(GameEventType.DEALER_TURN_STARTED, "Dealer's turn has started."));
+        notifyObservers(new GameEvent(GameEventType.DEALER_TURN_STARTED, "Dealer's turn has started.", 
+                Map.of("dealerHand", dealer.getHand().getCards())));
         while (ruleSet.dealerShouldHit(dealer.getHand())) {
             Card drawnCard = deck.draw();
             dealer.receiveCard(drawnCard);
-            notifyObservers(new GameEvent(GameEventType.CARD_DEALT, "Dealer drew a card: " + drawnCard));
+            notifyObservers(new GameEvent(GameEventType.CARD_DEALT, "Dealer drew a card",
+                    Map.of("card", drawnCard,
+                            "participant", dealer.getName())));
         }
         if (ruleSet.isBust(dealer.getHand())) {
-            notifyObservers(new GameEvent(GameEventType.DEALER_BUSTED, "Dealer has busted!"));
+            notifyObservers(new GameEvent(GameEventType.DEALER_BUSTED, "Dealer has busted!", 
+                    Map.of("finalHand", dealer.getHand().getCards())));
         }
-        endRound();
     }
 
     private void endRound() {
