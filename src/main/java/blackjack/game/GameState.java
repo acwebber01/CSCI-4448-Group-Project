@@ -1,6 +1,5 @@
 package blackjack.game;
 
-import java.util.Collections;
 import java.util.List;
 
 import blackjack.cards.Card;
